@@ -153,9 +153,10 @@ export default () => ({
     enabled: process.env.CACHE_ENABLED === 'true',
   },
 
-  // Main Database configuration (always SQLite for boot config)
+  // Main Database configuration. It can share an external PostgreSQL database with the data
+  // connection on diskless hosts; SQLite remains the zero-config default.
   database: {
-    type: 'sqlite' as const,
+    type: process.env.MAIN_DATABASE_TYPE || 'sqlite',
     // SQLite file for the auth/audit DB. Overridable (e.g. e2e points it at a temp file) so tests
     // never write api keys into the developer's ./data/main.sqlite.
     database: process.env.MAIN_DATABASE_NAME || './data/main.sqlite',
@@ -167,6 +168,13 @@ export default () => ({
     // manages the data connection.
     synchronize: process.env.MAIN_DATABASE_SYNCHRONIZE !== 'false',
     logging: process.env.DATABASE_LOGGING === 'true',
+    host: process.env.MAIN_DATABASE_HOST || process.env.DATABASE_HOST || 'localhost',
+    port: parseInt(process.env.MAIN_DATABASE_PORT || process.env.DATABASE_PORT || '5432', 10),
+    name: process.env.MAIN_DATABASE_NAME || process.env.DATABASE_NAME || 'openwa',
+    username: process.env.MAIN_DATABASE_USERNAME || process.env.DATABASE_USERNAME,
+    password: process.env.MAIN_DATABASE_PASSWORD || process.env.DATABASE_PASSWORD,
+    ssl: process.env.DATABASE_SSL === 'true',
+    sslRejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false',
   },
 
   // Data Storage Database configuration (pluggable: SQLite, PostgreSQL, etc.)
@@ -237,6 +245,7 @@ export default () => ({
     // gets its own subdirectory. Read by the Baileys plugin from the opaque engine config blob.
     baileys: {
       authDir: process.env.BAILEYS_AUTH_DIR || './data/baileys',
+      authStore: process.env.BAILEYS_AUTH_STORE || 'local',
     },
   },
 

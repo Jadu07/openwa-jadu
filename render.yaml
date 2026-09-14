@@ -1,0 +1,65 @@
+services:
+  - type: web
+    name: openwa
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health/ready
+    maxShutdownDelaySeconds: 60
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ENGINE_TYPE
+        value: baileys
+      - key: BAILEYS_AUTH_STORE
+        value: mongodb
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DATABASE
+        value: openwa
+      - key: DATABASE_TYPE
+        value: postgres
+      - key: DATABASE_HOST
+        sync: false
+      - key: DATABASE_PORT
+        value: '5432'
+      - key: DATABASE_NAME
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: DATABASE_SSL
+        value: 'true'
+      - key: DATABASE_SSL_REJECT_UNAUTHORIZED
+        value: 'true'
+      - key: DATABASE_SYNCHRONIZE
+        value: 'false'
+      - key: DATABASE_POOL_SIZE
+        value: '3'
+      - key: MAIN_DATABASE_TYPE
+        value: postgres
+      - key: MAIN_DATABASE_SYNCHRONIZE
+        value: 'true'
+      - key: API_MASTER_KEY
+        generateValue: true
+      - key: API_KEY_PEPPER
+        generateValue: true
+      - key: AUTO_START_SESSIONS
+        value: 'true'
+      - key: MAX_CONCURRENT_SESSIONS
+        value: '1'
+      - key: BAILEYS_MARK_ONLINE_ON_CONNECT
+        value: 'false'
+      - key: REDIS_ENABLED
+        value: 'false'
+      - key: QUEUE_ENABLED
+        value: 'false'
+      - key: STORAGE_TYPE
+        value: local
+      - key: CHAT_MEDIA_ARCHIVE_ENABLED
+        value: 'false'
+      - key: SERVE_DASHBOARD
+        value: 'true'
+      - key: ENABLE_SWAGGER
+        value: 'false'

@@ -423,16 +423,17 @@ openwa/
 
 Comprehensive documentation is available in the `docs/` folder:
 
-| Document                                                | Description                  |
-| ------------------------------------------------------- | ---------------------------- |
-| [Project Overview](./docs/01-project-overview.md)       | Introduction and goals       |
-| [Requirements](./docs/02-requirements-specification.md) | Feature specifications       |
-| [Architecture](./docs/03-system-architecture.md)        | System design                |
-| [Security](./docs/04-security-design.md)                | Security implementation      |
-| [Database](./docs/05-database-design.md)                | Data models and migrations   |
-| [API Spec](./docs/06-api-specification.md)              | Complete API reference       |
-| [Development](./docs/08-development-guidelines.md)      | Coding standards             |
-| [Migration Guide](./docs/14-migration-guide.md)         | Database & storage migration |
+| Document                                                      | Description                   |
+| ------------------------------------------------------------- | ----------------------------- |
+| [Project Overview](./docs/01-project-overview.md)             | Introduction and goals        |
+| [Requirements](./docs/02-requirements-specification.md)       | Feature specifications        |
+| [Architecture](./docs/03-system-architecture.md)              | System design                 |
+| [Security](./docs/04-security-design.md)                      | Security implementation       |
+| [Database](./docs/05-database-design.md)                      | Data models and migrations    |
+| [API Spec](./docs/06-api-specification.md)                    | Complete API reference        |
+| [Development](./docs/08-development-guidelines.md)            | Coding standards              |
+| [Migration Guide](./docs/14-migration-guide.md)               | Database & storage migration  |
+| [Render Free Deployment](./docs/32-render-free-deployment.md) | Diskless Render + Atlas setup |
 
 ---
 

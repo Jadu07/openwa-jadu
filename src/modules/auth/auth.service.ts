@@ -351,27 +351,24 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
    * permanent management lockout with no in-band recovery (the boot seed only fires on an EMPTY
    * table, not on zero unscoped admins). The simple-array column stores an empty array as '' (rows
    * updated with allowedSessions: [] hold exactly that), so "no session scope" is NULL or ''.
-   * Dates are stored as UTC "YYYY-MM-DD HH:mm:ss.SSS" strings, so :guardNow is bound in that exact
-   * format (see guardNowParam) and the string comparison is chronological. Parameterized by column
-   * prefix so one definition serves both the row being mutated (bare) and the EXISTS subquery's
-   * `other` row.
+   * Parameterized by column prefix so one definition serves both the row being mutated (bare) and
+   * the EXISTS subquery's `other` row. Boolean and Date parameters are driver-encoded, keeping the
+   * statement valid on both SQLite and PostgreSQL.
    */
   private static usableAdminCondition(prefix: string): string {
     const col = (name: string) => (prefix ? `"${prefix}"."${name}"` : `"${name}"`);
     return (
-      `${col('role')} = :adminRole AND ${col('isActive')} = 1 AND ` +
+      `${col('role')} = :adminRole AND ${col('isActive')} = :active AND ` +
       `(${col('expiresAt')} IS NULL OR ${col('expiresAt')} > :guardNow) AND ` +
       `(${col('allowedSessions')} = '' OR ${col('allowedSessions')} IS NULL)`
     );
   }
 
   /**
-   * The instant bound as :guardNow, formatted exactly as the SQLite driver persists datetime
-   * columns (UTC "YYYY-MM-DD HH:mm:ss.SSS" — what AbstractSqliteDriver writes for a Date), so the
-   * guard's comparison against stored expiresAt values is chronological.
+   * The instant bound as :guardNow. TypeORM encodes it for the active database driver.
    */
-  private static guardNowParam(): string {
-    return new Date().toISOString().slice(0, 23).replace('T', ' ');
+  private static guardNowParam(): Date {
+    return new Date();
   }
 
   /**
@@ -390,7 +387,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
         `(NOT (${AuthService.usableAdminCondition('')}) OR EXISTS (` +
           `SELECT 1 FROM "api_keys" "other" WHERE "other"."id" <> :id AND ${AuthService.usableAdminCondition('other')}))`,
       )
-      .setParameters({ adminRole: ApiKeyRole.ADMIN, guardNow: AuthService.guardNowParam() }) as T;
+      .setParameters({ adminRole: ApiKeyRole.ADMIN, active: true, guardNow: AuthService.guardNowParam() }) as T;
   }
 
   /**

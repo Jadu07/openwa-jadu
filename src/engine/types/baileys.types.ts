@@ -31,6 +31,7 @@ export interface BaileysAdapterConfig {
   /** Session UUID (Session.id) — keys the FK-bound baileys_stored_messages rows via messageStore. */
   dbSessionId: string;
   authDir: string;
+  authStore?: 'local' | 'mongodb';
   proxyUrl?: string;
   proxyType?: 'http' | 'https' | 'socks4' | 'socks5';
   /** Persisted store for reply/forward/react/delete. Provided by the plugin; the four ops require it. */

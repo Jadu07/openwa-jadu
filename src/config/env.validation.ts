@@ -63,6 +63,14 @@ export function validateEnv(config: EnvConfig): EnvConfig {
     errors.push(`DATABASE_TYPE must be "sqlite" or "postgres" (got "${dbType}")`);
   }
 
+  const mainDbType = str('MAIN_DATABASE_TYPE');
+  if (mainDbType && mainDbType !== 'sqlite' && mainDbType !== 'postgres') {
+    errors.push(`MAIN_DATABASE_TYPE must be "sqlite" or "postgres" (got "${mainDbType}")`);
+  }
+  if (mainDbType === 'postgres' && config['MAIN_DATABASE_SYNCHRONIZE'] === 'false') {
+    errors.push('MAIN_DATABASE_SYNCHRONIZE=false is not supported with MAIN_DATABASE_TYPE=postgres');
+  }
+
   // Whitelist the registered engine/storage ids so a typo fails fast at boot instead of silently
   // falling back to the default (engine.factory swallows an unknown ENGINE_TYPE → legacy wwebjs;
   // STORAGE_TYPE → local). Values must match the ids registered in engine.factory / configuration.
@@ -74,6 +82,10 @@ export function validateEnv(config: EnvConfig): EnvConfig {
   };
   checkEnum('ENGINE_TYPE', ['whatsapp-web.js', 'baileys']);
   checkEnum('STORAGE_TYPE', ['local', 's3']);
+  checkEnum('BAILEYS_AUTH_STORE', ['local', 'mongodb']);
+  if (str('BAILEYS_AUTH_STORE') === 'mongodb' && !str('MONGODB_URI')) {
+    errors.push('MONGODB_URI is required when BAILEYS_AUTH_STORE=mongodb');
+  }
   // Every production hardening in the repo gates on the exact string 'production', so an
   // unrecognised value silently selects the permissive branch of each one — CORS, Swagger, DTO
   // error detail, the default-secret guard and the ALLOW_DEV_API_KEY rejection that stops the public

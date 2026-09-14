@@ -49,13 +49,16 @@ export class BaileysPlugin implements IEnginePlugin {
     // Baileys' own config namespace, read from the opaque per-engine blob the factory supplies via
     // context.config (the `engine` sub-tree in configuration.ts). Per-call config carries only
     // engine-neutral fields (sessionId, proxy).
-    const engineConfig = (this.context?.config ?? this.registeredConfig ?? {}) as { baileys?: { authDir?: string } };
+    const engineConfig = (this.context?.config ?? this.registeredConfig ?? {}) as {
+      baileys?: { authDir?: string; authStore?: 'local' | 'mongodb' };
+    };
     const authDir = engineConfig.baileys?.authDir ?? './data/baileys';
 
     return new BaileysAdapter({
       sessionId,
       dbSessionId,
       authDir,
+      authStore: engineConfig.baileys?.authStore,
       proxyUrl,
       proxyType,
       messageStore: this.messageStore,

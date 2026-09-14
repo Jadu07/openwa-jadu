@@ -124,7 +124,7 @@ if (dashboardServingEnabled && dashboardBuildPresent) {
       validate: validateEnv,
     }),
 
-    // Main Database (always SQLite - boot config)
+    // Main Database (SQLite by default; PostgreSQL enables diskless deployments)
     TypeOrmModule.forRootAsync({
       name: 'main',
       imports: [ConfigModule],
@@ -134,20 +134,37 @@ if (dashboardServingEnabled && dashboardBuildPresent) {
         // (MAIN_DATABASE_SYNCHRONIZE=false), the main-owned migrations create the
         // api_keys/audit_logs schema instead — never both at once.
         const synchronize = configService.get<boolean>('database.synchronize', true);
-        return {
+        const base = {
           name: 'main',
-          type: 'better-sqlite3' as const,
-          database: configService.get<string>('database.database', './data/main.sqlite'),
           entities: [
             __dirname + '/modules/auth/**/*.entity{.ts,.js}',
             __dirname + '/modules/audit/**/*.entity{.ts,.js}',
           ],
-          // Dedicated migrations dir for the main connection only (must NOT run the
-          // data-connection migrations, which target session/webhook/message tables).
-          migrations: [__dirname + '/database/migrations-main/*{.ts,.js}'],
           synchronize,
-          migrationsRun: !synchronize,
           logging: configService.get<boolean>('database.logging', false),
+        };
+        if (configService.get<string>('database.type', 'sqlite') === 'postgres') {
+          return {
+            ...base,
+            type: 'postgres' as const,
+            host: configService.get<string>('database.host'),
+            port: configService.get<number>('database.port'),
+            username: configService.get<string>('database.username'),
+            password: configService.get<string>('database.password'),
+            database: configService.get<string>('database.name', 'openwa'),
+            ssl: configService.get<boolean>('database.ssl', false)
+              ? { rejectUnauthorized: configService.get<boolean>('database.sslRejectUnauthorized', true) }
+              : false,
+          };
+        }
+        return {
+          ...base,
+          type: 'better-sqlite3' as const,
+          database: configService.get<string>('database.database', './data/main.sqlite'),
+          // The bundled main migrations are SQLite-specific; PostgreSQL uses synchronize for these
+          // two small tables while the application data connection remains migration-managed.
+          migrations: [__dirname + '/database/migrations-main/*{.ts,.js}'],
+          migrationsRun: !synchronize,
         };
       },
     }),

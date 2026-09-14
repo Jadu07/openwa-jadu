@@ -18,6 +18,7 @@ import { unappliedPatches, unappliedPatchesMessage } from './engine-patch-status
 import type { BaileysEvents } from './baileys-events';
 import type { BaileysHistory } from './baileys-history';
 import type { BaileysSessionStore } from './baileys-session-store';
+import { clearMongoAuthState, useMongoAuthState } from './baileys-mongo-auth-state';
 
 /** Linked-device identity shown in WhatsApp (Settings → Linked Devices). The display name is
  * operator-brandable via BAILEYS_BROWSER_NAME; it only applies to pairings made after the change. */
@@ -211,7 +212,10 @@ export class BaileysLifecycle {
       this.host.logger.log(`Using proxy: ${protocol}//${host}`, { sessionId: this.host.config.sessionId });
     }
     const b = await this.loadLib();
-    const { state, saveCreds } = await b.useMultiFileAuthState(this.host.authPath);
+    const { state, saveCreds } =
+      this.host.config.authStore === 'mongodb'
+        ? await useMongoAuthState(this.host.config.sessionId, b)
+        : await b.useMultiFileAuthState(this.host.authPath);
     const version = await this.versionResolver.resolve(b, { dispatcher: proxyAgent });
     // BaileysLogger matches ILogger exactly; cast needed because the module resolves the type
     // through a deep import path that TypeScript does not auto-unify here. Shared by the key
@@ -807,8 +811,13 @@ export class BaileysLifecycle {
    */
   private async clearAuthState(): Promise<void> {
     try {
-      await fs.promises.rm(this.host.authPath, { recursive: true, force: true });
-      this.host.logger.log('Cleared Baileys auth state', { authPath: this.host.authPath });
+      if (this.host.config.authStore === 'mongodb') {
+        await clearMongoAuthState(this.host.config.sessionId);
+        this.host.logger.log('Cleared Baileys auth state from MongoDB', { sessionId: this.host.config.sessionId });
+      } else {
+        await fs.promises.rm(this.host.authPath, { recursive: true, force: true });
+        this.host.logger.log('Cleared Baileys auth state', { authPath: this.host.authPath });
+      }
     } catch (err) {
       this.host.logger.warn('Failed to clear Baileys auth state', {
         error: err instanceof Error ? err.message : String(err),

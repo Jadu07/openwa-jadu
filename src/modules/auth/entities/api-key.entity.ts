@@ -1,5 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
+const mainDateColumnType =
+  process.env.MAIN_DATABASE_TYPE === 'postgres' ? ('timestamptz' as const) : ('datetime' as const);
+
 export enum ApiKeyRole {
   ADMIN = 'admin',
   OPERATOR = 'operator',
@@ -39,10 +42,10 @@ export class ApiKey {
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: mainDateColumnType, nullable: true })
   expiresAt!: Date | null;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: mainDateColumnType, nullable: true })
   lastUsedAt!: Date | null;
 
   @Column({ type: 'int', default: 0 })

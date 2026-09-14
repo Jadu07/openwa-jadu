@@ -24,7 +24,10 @@ export const DisconnectReason = { loggedOut: 401 };
 export const proto = {
   // namespace proto.PinInChat { enum Type } — WAProto/index.d.ts:10355-10361
   PinInChat: { Type: { UNKNOWN_TYPE: 0, PIN_FOR_ALL: 1, UNPIN_FOR_ALL: 2 } },
+  Message: { AppStateSyncKeyData: { fromObject: (value: unknown) => value } },
 };
+
+export const initAuthCreds = jest.fn(() => ({ registered: false }));
 
 // Inline implementation mirrored from @whiskeysockets/baileys/lib/Utils/generics.js
 // (the package is pure ESM; ts-jest runs CJS, so the mock owns the serialisation helpers)
