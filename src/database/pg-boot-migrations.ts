@@ -83,7 +83,7 @@ export async function createBootDataSource(
 }
 
 function lockClientConfig(options: PostgresOptions): ClientConfig {
-  const extra = (options.extra ?? {}) as { connectionTimeoutMillis?: number };
+  const extra = (options.extra ?? {}) as { connectionTimeoutMillis?: number; statement_timeout?: number };
   return {
     host: options.host,
     port: options.port,
@@ -96,11 +96,11 @@ function lockClientConfig(options: PostgresOptions): ClientConfig {
     // Bound a stuck connect like the pool does (app.module's extra carries the same setting).
     connectionTimeoutMillis: extra.connectionTimeoutMillis ?? 10000,
     // This client's only statements are pg_advisory_lock/unlock, and statement_timeout applies to
-    // ANY command — including the wait inside pg_advisory_lock — so it must be OFF here. A config
-    // `statement_timeout: 0` would NOT do it: pg drops falsy values from the startup packet, so
-    // disable it via the startup `options` string instead, which also overrides any role- or
-    // database-level default the server may carry. (lock_timeout never applies to advisory locks,
-    // so it needs no override.)
-    options: '-c statement_timeout=0',
+    // ANY command — including the wait inside pg_advisory_lock — so it must be OFF here. Neon
+    // pooled endpoints reject statement_timeout in the startup packet entirely, including the
+    // `-c statement_timeout=0` form, so the Render/Neon configuration omits it from `extra`.
+    // Standard Postgres keeps the explicit startup override to avoid role- or database-level
+    // defaults. (lock_timeout never applies to advisory locks, so it needs no override.)
+    ...(extra.statement_timeout === undefined ? {} : { options: '-c statement_timeout=0' }),
   };
 }

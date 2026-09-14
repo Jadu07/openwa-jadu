@@ -252,9 +252,9 @@ describe('createBootDataSource (postgres boot migrations)', () => {
 
     await createBootDataSource({ ...PG_OPTIONS, extra: undefined }, deps);
 
-    expect(deps.createLockClient).toHaveBeenCalledWith(
-      expect.objectContaining({ connectionTimeoutMillis: 10000, options: '-c statement_timeout=0' }),
-    );
+    expect(deps.createLockClient).toHaveBeenCalledWith(expect.objectContaining({ connectionTimeoutMillis: 10000 }));
+    const createLockClient = deps.createLockClient as jest.Mock<AdvisoryLockClient, [ClientConfig]>;
+    expect(createLockClient.mock.calls[0][0].options).toBeUndefined();
   });
 
   it('takes the connect timeout from extra and forwards ssl by reference', async () => {
