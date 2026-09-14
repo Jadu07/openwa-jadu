@@ -236,7 +236,11 @@ if (dashboardServingEnabled && dashboardBuildPresent) {
               // hanging requests. statement_timeout bounds live runtime queries; the boot migrations
               // reset it to 0 per-transaction via SET LOCAL, so a long
               // CREATE INDEX / backfill at boot is never aborted by it.
-              statement_timeout: configService.get<number>('dataDatabase.statementTimeoutMs', 30000),
+              ...(configService.get<number>('dataDatabase.statementTimeoutMs', 30000) > 0
+                ? {
+                    statement_timeout: configService.get<number>('dataDatabase.statementTimeoutMs', 30000),
+                  }
+                : {}),
               idleTimeoutMillis: configService.get<number>('dataDatabase.idleTimeoutMs', 30000),
               connectionTimeoutMillis: configService.get<number>('dataDatabase.connectionTimeoutMs', 10000),
               // Only set for a non-public schema (see above). `<schema>,public` keeps public on the
